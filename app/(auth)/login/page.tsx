@@ -68,7 +68,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right: form panel ── */}
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 bg-gray-50">
+      <div className="min-h-screen flex flex-col items-center px-6 pt-16 pb-10 bg-gray-50">
         <div className="w-full max-w-[380px]">
           {/* Mobile-only logo */}
           <div className="lg:hidden text-center mb-6">
