@@ -37,15 +37,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="lg:grid lg:grid-cols-[460px_1fr] xl:grid-cols-[500px_1fr]">
       {/* ── Left: brand panel (desktop only) ── */}
-      <div className="hidden lg:flex lg:w-[460px] xl:w-[500px] bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 flex-col justify-between p-12 shrink-0">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-5 h-5 rounded flex items-center justify-center">
-            <svg className="w-5 h-5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
-          </div>
+      <div className="hidden lg:flex flex-col justify-between h-screen sticky top-0 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-12">
+        <Link href="/" className="flex items-center gap-2.5">
+          <svg className="w-5 h-5 text-white/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
           <span className="text-white font-bold text-xl tracking-tight">CodeLearn</span>
         </Link>
 
@@ -70,17 +68,14 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right: form panel ── */}
-      <div className="flex-1 bg-gray-50 overflow-y-auto">
-        <div className="min-h-screen flex flex-col items-center justify-center px-6 py-8">
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 bg-gray-50">
         <div className="w-full max-w-[380px]">
           {/* Mobile-only logo */}
           <div className="lg:hidden text-center mb-6">
             <Link href="/" className="inline-flex items-center gap-2 font-bold text-gray-900 text-xl">
-              <div className="w-5 h-5 rounded flex items-center justify-center">
-                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-              </div>
+              <svg className="w-5 h-5 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
               CodeLearn
             </Link>
           </div>
@@ -103,7 +98,7 @@ export default function LoginPage() {
             </button>
 
             {/* Divider */}
-            <div className="relative my-5">
+            <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-100" />
               </div>
@@ -113,7 +108,7 @@ export default function LoginPage() {
             </div>
 
             {/* Email form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {error && (
                 <div className="flex items-start gap-2.5 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
                   <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -159,7 +154,6 @@ export default function LoginPage() {
               Sign up free
             </Link>
           </p>
-        </div>
         </div>
       </div>
     </div>
