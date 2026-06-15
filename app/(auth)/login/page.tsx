@@ -41,8 +41,8 @@ export default function LoginPage() {
       {/* ── Left: brand panel (desktop only) ── */}
       <div className="hidden lg:flex lg:w-[460px] xl:w-[500px] bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 flex-col justify-between p-12 shrink-0">
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <div className="w-5 h-5 rounded flex items-center justify-center">
+            <svg className="w-5 h-5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
           </div>
@@ -70,13 +70,13 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right: form panel ── */}
-      <div className="flex-1 flex items-center justify-center px-6 py-8 bg-gray-50 overflow-y-auto">
+      <div className="flex-1 min-h-screen flex items-center justify-center px-6 py-8 bg-gray-50 overflow-y-auto">
         <div className="w-full max-w-[380px]">
           {/* Mobile-only logo */}
           <div className="lg:hidden text-center mb-6">
             <Link href="/" className="inline-flex items-center gap-2 font-bold text-gray-900 text-xl">
-              <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
-                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <div className="w-5 h-5 rounded flex items-center justify-center">
+                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                 </svg>
               </div>
