@@ -70,7 +70,8 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right: form panel ── */}
-      <div className="flex-1 min-h-screen flex items-center justify-center px-6 py-8 bg-gray-50 overflow-y-auto">
+      <div className="flex-1 bg-gray-50 overflow-y-auto">
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 py-8">
         <div className="w-full max-w-[380px]">
           {/* Mobile-only logo */}
           <div className="lg:hidden text-center mb-6">
@@ -158,6 +159,7 @@ export default function LoginPage() {
               Sign up free
             </Link>
           </p>
+        </div>
         </div>
       </div>
     </div>
