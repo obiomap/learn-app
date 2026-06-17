@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getJSLessons, getPythonLessons, getSQLLessons } from "@/data/lessons";
 import LessonCard from "@/components/lessons/LessonCard";
+import LessonRecommender from "@/components/lessons/LessonRecommender";
 
 export default async function LessonsPage() {
   const session = await getServerSession(authOptions);
@@ -140,6 +141,7 @@ export default async function LessonsPage() {
 
         {/* ── Python track ── */}
         <section className="mb-10">
+          <LessonRecommender />
           <div className="flex items-center gap-3 mb-4">
             <div className="w-1 h-6 rounded-full bg-emerald-400 shrink-0" />
             <h2 className="font-bold text-gray-900">Python</h2>
