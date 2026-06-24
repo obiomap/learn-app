@@ -15,6 +15,7 @@ const trackAccent: Record<string, string> = {
   "data-analyst": "border-l-violet-400",
   "ai-ml":        "border-l-rose-400",
   cybersecurity:  "border-l-red-500",
+  excel:          "border-l-green-600",
 };
 
 export default function LessonCard({ lesson, completed, locked }: LessonCardProps) {

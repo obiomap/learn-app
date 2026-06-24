@@ -1,7 +1,7 @@
 export interface Lesson {
   id: string;
   title: string;
-  track: "javascript" | "python" | "sql" | "data-analyst" | "ai-ml" | "cybersecurity";
+  track: "javascript" | "python" | "sql" | "data-analyst" | "ai-ml" | "cybersecurity" | "excel";
   /** Execution engine for this lesson. Defaults to track when track is js/python/sql. Required for data-analyst lessons. */
   runtime?: "javascript" | "python" | "sql";
   /** Pyodide packages to preload before running (only used by Python runtime). */
@@ -1715,6 +1715,138 @@ INSERT INTO sales VALUES (8, 'Cable',     'Accessories', 50, 250);`,
       "Pattern scanners are a complement to parameterised queries, not a replacement — always use placeholders.",
     ],
   },
+
+  // ── Excel Track (pandas-backed) ────────────────────────────────────────
+  {
+    id: "xl-01",
+    title: "Excel: SUM, AVERAGE & MAX",
+    track: "excel",
+    runtime: "python",
+    pyPackages: ["pandas"],
+    tier: "pro",
+    order: 1,
+    description: "The first three formulas every Excel user reaches for. You will reproduce them on a table of sales using pandas, which mirrors how the formulas work under the hood.",
+    explanation:
+      `Excel formulas map directly to pandas column operations:\n\n  Excel:  =SUM(B2:B6)     →  df["revenue"].sum()\n  Excel:  =AVERAGE(B2:B6) →  df["revenue"].mean()\n  Excel:  =MAX(B2:B6)     →  df["revenue"].max()\n  Excel:  =MIN(B2:B6)     →  df["revenue"].min()\n  Excel:  =COUNT(B2:B6)   →  df["revenue"].count()\n\nA pandas DataFrame is literally a spreadsheet: rows × columns, with labels. Each column behaves like a vertical range of cells you can apply a formula to.\n\nThe big win over Excel: these operations are programmatic, repeatable, and auditable — no hidden formulas in cells.`,
+    examples: [
+      { label: "SUM a column", code: `import pandas as pd\ndf = pd.DataFrame({"revenue": [100, 200, 300]})\nprint(df["revenue"].sum())   # 600` },
+      { label: "AVERAGE and MAX", code: `print(df["revenue"].mean())  # 200.0\nprint(df["revenue"].max())   # 300` },
+      { label: "Whole-sheet describe", code: `print(df.describe())\n# count, mean, std, min, 25%, 50%, 75%, max — one call replaces a dashboard` },
+    ],
+    project: "Mini project: A small sales sheet. Print total revenue, average revenue per product, and the largest single sale.",
+    objective: "Print exactly:\n1000\n200.0\n400",
+    starterCode: `# Excel: SUM, AVERAGE & MAX\nimport pandas as pd\n\nsales = pd.DataFrame({\n    "product": ["A", "B", "C", "D", "E"],\n    "revenue": [100, 250, 75, 400, 175],\n})\n\n# 1. Print =SUM(revenue)\nprint(sales["revenue"].sum())\n# 2. Print =AVERAGE(revenue)\nprint(sales["revenue"].mean())\n# 3. Print =MAX(revenue)\nprint(sales["revenue"].max())\n`,
+    expectedOutput: "1000\n200.0\n400",
+    hints: [
+      "100 + 250 + 75 + 400 + 175 = 1000.",
+      "Average of 5 values that sum to 1000 = 200.0.",
+      "The largest value in the column is 400.",
+    ],
+  },
+  {
+    id: "xl-02",
+    title: "Excel: IF Formulas",
+    track: "excel",
+    runtime: "python",
+    pyPackages: ["pandas"],
+    tier: "pro",
+    order: 2,
+    description: "Excel IF formulas drive almost every spreadsheet that does more than addition. numpy.where is the vectorised equivalent — apply a condition across every row in one expression.",
+    explanation:
+      `Excel:  =IF(B2>=60, "Pass", "Fail")\nnumpy:  np.where(df["score"] >= 60, "Pass", "Fail")\n\nFor nested IFs:\n  Excel:  =IF(B2>=90, "A", IF(B2>=75, "B", "C"))\n  pandas: pd.cut(df["score"], bins=[0, 75, 90, 100], labels=["C", "B", "A"], right=False)\n\nOr a chain of np.where calls — readable for 2 or 3 cases:\n  np.where(s >= 90, "A", np.where(s >= 75, "B", "C"))\n\nThe big upgrade vs Excel: the logic is one line of code that runs across the whole column, not a formula you have to drag down 10,000 rows.`,
+    examples: [
+      { label: "Pass / Fail", code: `import pandas as pd\nimport numpy as np\ndf = pd.DataFrame({"score": [82, 55, 91]})\ndf["status"] = np.where(df["score"] >= 60, "Pass", "Fail")\nprint(df.values.tolist())\n# [[82, 'Pass'], [55, 'Fail'], [91, 'Pass']]` },
+      { label: "Nested IF for letter grades", code: `df["grade"] = np.where(df["score"] >= 90, "A",\n                np.where(df["score"] >= 75, "B", "C"))` },
+      { label: "Conditional column update", code: `# Excel: =IF(C2>1000, C2*0.9, C2)\ndf["price"] = np.where(df["price"] > 1000, df["price"] * 0.9, df["price"])` },
+    ],
+    project: "Mini project: For four students, label each as Pass or Fail. Print the resulting [name, status] rows.",
+    objective: "Print exactly:\n[['Ana', 'Pass'], ['Ben', 'Fail'], ['Cal', 'Pass'], ['Dee', 'Pass']]",
+    starterCode: `# Excel: IF Formulas\nimport pandas as pd\nimport numpy as np\n\nscores = pd.DataFrame({\n    "name":  ["Ana", "Ben", "Cal", "Dee"],\n    "score": [82, 55, 67, 91],\n})\n\n# Excel:  =IF(B2>=60, "Pass", "Fail")\nscores["status"] = np.where(scores["score"] >= 60, "Pass", "Fail")\n\nprint(scores[["name", "status"]].values.tolist())\n`,
+    expectedOutput: "[['Ana', 'Pass'], ['Ben', 'Fail'], ['Cal', 'Pass'], ['Dee', 'Pass']]",
+    hints: [
+      "np.where(condition, true_value, false_value) applies element-wise to the whole column.",
+      "Ben scored 55 — the only failing grade.",
+      "df[[\"name\", \"status\"]].values.tolist() converts the two-column slice to a list of pairs.",
+    ],
+  },
+  {
+    id: "xl-03",
+    title: "Excel: VLOOKUP & XLOOKUP",
+    track: "excel",
+    runtime: "python",
+    pyPackages: ["pandas"],
+    tier: "pro",
+    order: 3,
+    description: "VLOOKUP joins two tables on a shared key — and is one of the most-asked Excel skills in interviews. In pandas, that operation is called merge.",
+    explanation:
+      `Excel VLOOKUP:\n  =VLOOKUP(B2, products!A:B, 2, FALSE)\n  \"Find B2 in the products lookup table and return column 2 (the name).\"\n\nXLOOKUP improves the syntax but the operation is the same.\n\npandas equivalent — a left merge:\n  result = orders.merge(products, on="product_code", how="left")\n\nThe result is a wide table with columns from BOTH inputs. You can then pick whichever columns matter (typically with df[[col1, col2]]).\n\nWhy this is better than VLOOKUP:\n  - Joins on multiple keys (on=["a", "b"]) — VLOOKUP needs concatenation tricks\n  - Inner / left / outer joins via how="..."  — VLOOKUP only does \"left + fail\"\n  - Errors when keys are duplicated, instead of silently picking the first match`,
+    examples: [
+      { label: "Basic VLOOKUP via merge", code: `import pandas as pd\norders = pd.DataFrame({"id": [1, 2], "code": ["P1", "P2"]})\nproducts = pd.DataFrame({"code": ["P1", "P2"], "name": ["Laptop", "Mouse"]})\nprint(orders.merge(products, on="code").values.tolist())\n# [[1, 'P1', 'Laptop'], [2, 'P2', 'Mouse']]` },
+      { label: "Pick specific columns after merge", code: `result = orders.merge(products, on="code", how="left")\nprint(result[["id", "name"]].values.tolist())` },
+      { label: "Multi-key lookup", code: `# Excel can't do this without CONCATENATE tricks\norders.merge(products, on=["region", "code"], how="left")` },
+    ],
+    project: "Mini project: Three orders reference product codes. Look up each order's product name and print [order_id, product_name] pairs.",
+    objective: "Print exactly:\n[[1, 'Laptop'], [2, 'Mouse'], [3, 'Laptop']]",
+    starterCode: `# Excel: VLOOKUP & XLOOKUP\nimport pandas as pd\n\norders = pd.DataFrame({\n    "order_id":     [1, 2, 3],\n    "product_code": ["P1", "P2", "P1"],\n})\nproducts = pd.DataFrame({\n    "product_code": ["P1", "P2", "P3"],\n    "name":         ["Laptop", "Mouse", "Cable"],\n})\n\n# Excel: =VLOOKUP(B2, products!A:B, 2, FALSE)\nresult = orders.merge(products, on="product_code", how="left")\n\nprint(result[["order_id", "name"]].values.tolist())\n`,
+    expectedOutput: "[[1, 'Laptop'], [2, 'Mouse'], [3, 'Laptop']]",
+    hints: [
+      "how=\"left\" keeps every order even if no matching product is found (NaN in that case).",
+      "Product P1 appears twice in orders — both lookups resolve to 'Laptop'.",
+      "Selecting [[\"order_id\", \"name\"]] drops the product_code column from the final output.",
+    ],
+  },
+  {
+    id: "xl-04",
+    title: "Excel: COUNTIF & SUMIF",
+    track: "excel",
+    runtime: "python",
+    pyPackages: ["pandas"],
+    tier: "pro",
+    order: 4,
+    description: "COUNTIF and SUMIF answer the day-to-day Excel question: how many rows match a criterion, and what is the total for those rows? pandas boolean indexing makes both trivial.",
+    explanation:
+      `Excel:  =COUNTIF(A:A, "North")\npandas: (df["region"] == "North").sum()\n\nExcel:  =SUMIF(A:A, "North", B:B)\npandas: df.loc[df["region"] == "North", "amount"].sum()\n\nThe pattern: a boolean expression like df["col"] == value returns a True/False mask. Then:\n  - .sum() on the mask counts True values\n  - df.loc[mask, "other_col"] picks the matching rows from another column\n\nThis composes — chain conditions with & (and) / | (or):\n  mask = (df["region"] == "North") & (df["amount"] > 100)\n  df.loc[mask, "amount"].sum()\n\nExcel's COUNTIFS / SUMIFS handle the multi-condition case; pandas just keeps using the same pattern.`,
+    examples: [
+      { label: "COUNTIF", code: `import pandas as pd\ndf = pd.DataFrame({"region": ["N", "S", "N", "E"]})\nprint((df["region"] == "N").sum())  # 2` },
+      { label: "SUMIF", code: `df = pd.DataFrame({"region": ["N", "S", "N"], "amount": [100, 200, 50]})\nprint(df.loc[df["region"] == "N", "amount"].sum())  # 150` },
+      { label: "Multi-condition (COUNTIFS)", code: `mask = (df["region"] == "N") & (df["amount"] > 50)\nprint(mask.sum())  # 1` },
+    ],
+    project: "Mini project: A small sales sheet with regions. Print the count of North sales and their total revenue.",
+    objective: "Print exactly:\nN count: 3\nN sum: 475",
+    starterCode: `# Excel: COUNTIF & SUMIF\nimport pandas as pd\n\nsales = pd.DataFrame({\n    "region": ["N", "S", "N", "E", "S", "N"],\n    "amount": [100, 250, 75, 400, 175, 300],\n})\n\n# Excel: =COUNTIF(region, "N")\nn_count = (sales["region"] == "N").sum()\n\n# Excel: =SUMIF(region, "N", amount)\nn_sum = sales.loc[sales["region"] == "N", "amount"].sum()\n\nprint(f"N count: {n_count}")\nprint(f"N sum: {n_sum}")\n`,
+    expectedOutput: "N count: 3\nN sum: 475",
+    hints: [
+      "Three N rows exist: 100 + 75 + 300 = 475.",
+      "sales[\"region\"] == \"N\" produces a Series of [True, False, True, False, False, True].",
+      ".sum() on a boolean Series counts True values; .loc[mask, col] picks matching rows from another column.",
+    ],
+  },
+  {
+    id: "xl-05",
+    title: "Excel: Pivot Tables",
+    track: "excel",
+    runtime: "python",
+    pyPackages: ["pandas"],
+    tier: "pro",
+    order: 5,
+    description: "Pivot tables turn long lists of transactions into cross-tabulated summaries — sales by region and product, headcount by department and grade, and so on. pandas pivot_table is the same idea, scripted.",
+    explanation:
+      `Excel:\n  Insert → PivotTable\n  Rows = region, Columns = product, Values = SUM(amount)\n\npandas:\n  pivot = df.pivot_table(\n      index="region",          # rows\n      columns="product",       # columns\n      values="amount",\n      aggfunc="sum",\n      fill_value=0,            # replace empty cells with 0\n  )\n\nThe result is a DataFrame indexed by region with one column per product. You can:\n  pivot.values.tolist()   — the 2D grid of numbers\n  pivot.index.tolist()    — the row labels (regions)\n  pivot.columns.tolist()  — the column labels (products)\n\nThis one call replaces dragging fields into the PivotTable wizard.`,
+    examples: [
+      { label: "Simple pivot", code: `import pandas as pd\ndf = pd.DataFrame({"region": ["N", "S", "N"], "product": ["A", "A", "B"], "amount": [10, 20, 30]})\nprint(df.pivot_table(index="region", columns="product", values="amount", aggfunc="sum", fill_value=0))` },
+      { label: "Different aggregator", code: `# Use mean instead of sum\ndf.pivot_table(index="region", columns="product", values="amount", aggfunc="mean")` },
+      { label: "Multiple value columns", code: `# Aggregate two metrics in one pivot\ndf.pivot_table(index="region", columns="product", values=["amount", "units"], aggfunc="sum")` },
+    ],
+    project: "Mini project: Pivot a sales log so rows are regions, columns are products, and values are summed amounts.",
+    objective: "Print exactly:\n[[300, 220], [250, 80], [300, 200]]\n['E', 'N', 'S']\n['A', 'B']",
+    starterCode: `# Excel: Pivot Tables\nimport pandas as pd\n\nsales = pd.DataFrame({\n    "region":  ["N", "S", "N", "E", "S", "N", "E", "S"],\n    "product": ["A", "B", "A", "A", "A", "B", "B", "A"],\n    "amount":  [100, 200, 150, 300, 120, 80, 220, 180],\n})\n\n# Excel: Insert > PivotTable, rows=region, cols=product, values=SUM(amount)\npivot = sales.pivot_table(\n    index="region",\n    columns="product",\n    values="amount",\n    aggfunc="sum",\n    fill_value=0,\n)\n\nprint(pivot.values.tolist())\nprint(pivot.index.tolist())\nprint(pivot.columns.tolist())\n`,
+    expectedOutput: "[[300, 220], [250, 80], [300, 200]]\n['E', 'N', 'S']\n['A', 'B']",
+    hints: [
+      "Region E: A=300, B=220. Region N: A=100+150=250, B=80. Region S: A=120+180=300, B=200.",
+      "The index is sorted alphabetically by default — E, N, S — so the row order is fixed.",
+      "fill_value=0 replaces missing (region, product) combinations with 0 instead of NaN.",
+    ],
+  },
 ];
 
 export function getLessonById(id: string): Lesson | undefined {
@@ -1747,4 +1879,8 @@ export function getMLLessons(): Lesson[] {
 
 export function getCybersecurityLessons(): Lesson[] {
   return lessons.filter((l) => l.track === "cybersecurity");
+}
+
+export function getExcelLessons(): Lesson[] {
+  return lessons.filter((l) => l.track === "excel");
 }

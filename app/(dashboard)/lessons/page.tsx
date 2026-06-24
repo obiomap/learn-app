@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getJSLessons, getPythonLessons, getSQLLessons, getDataAnalystLessons, getMLLessons, getCybersecurityLessons } from "@/data/lessons";
+import { getJSLessons, getPythonLessons, getSQLLessons, getDataAnalystLessons, getMLLessons, getCybersecurityLessons, getExcelLessons } from "@/data/lessons";
 import LessonCard from "@/components/lessons/LessonCard";
 import LessonRecommender from "@/components/lessons/LessonRecommender";
 
@@ -20,6 +20,7 @@ export default async function LessonsPage() {
   const daLessons  = getDataAnalystLessons();
   const mlLessons  = getMLLessons();
   const cyLessons  = getCybersecurityLessons();
+  const xlLessons  = getExcelLessons();
 
   const jsCompleted  = jsLessons.filter((l)  => completedIds.has(l.id)).length;
   const pyCompleted  = pyLessons.filter((l)  => completedIds.has(l.id)).length;
@@ -27,8 +28,9 @@ export default async function LessonsPage() {
   const daCompleted  = daLessons.filter((l)  => completedIds.has(l.id)).length;
   const mlCompleted  = mlLessons.filter((l)  => completedIds.has(l.id)).length;
   const cyCompleted  = cyLessons.filter((l)  => completedIds.has(l.id)).length;
-  const totalCompleted = jsCompleted + pyCompleted + sqlCompleted + daCompleted + mlCompleted + cyCompleted;
-  const totalLessons   = jsLessons.length + pyLessons.length + sqlLessons.length + daLessons.length + mlLessons.length + cyLessons.length;
+  const xlCompleted  = xlLessons.filter((l)  => completedIds.has(l.id)).length;
+  const totalCompleted = jsCompleted + pyCompleted + sqlCompleted + daCompleted + mlCompleted + cyCompleted + xlCompleted;
+  const totalLessons   = jsLessons.length + pyLessons.length + sqlLessons.length + daLessons.length + mlLessons.length + cyLessons.length + xlLessons.length;
 
   function ProgressBar({ pct, color }: { pct: number; color: string }) {
     return (
@@ -74,7 +76,7 @@ export default async function LessonsPage() {
         </div>
 
         {/* ── Track stat cards ── */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-10">
           {/* JavaScript */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-center gap-3 mb-1">
@@ -174,6 +176,23 @@ export default async function LessonsPage() {
               {isPro ? cyCompleted : "–"}<span className="text-gray-400 text-base font-normal">/{cyLessons.length}</span>
             </p>
             {isPro && <ProgressBar pct={cyLessons.length > 0 ? Math.round((cyCompleted / cyLessons.length) * 100) : 0} color="bg-red-500" />}
+          </div>
+
+          {/* Excel */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-6a1 1 0 011-1h4a1 1 0 011 1v6m-6 0h6m-6 0H6a1 1 0 01-1-1V6a1 1 0 011-1h12a1 1 0 011 1v10a1 1 0 01-1 1h-3" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">Excel</span>
+              {!isPro && <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">Pro</span>}
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mt-2">
+              {isPro ? xlCompleted : "–"}<span className="text-gray-400 text-base font-normal">/{xlLessons.length}</span>
+            </p>
+            {isPro && <ProgressBar pct={xlLessons.length > 0 ? Math.round((xlCompleted / xlLessons.length) * 100) : 0} color="bg-green-600" />}
           </div>
         </div>
 
@@ -288,7 +307,7 @@ export default async function LessonsPage() {
         </section>
 
         {/* ── Cybersecurity track ── */}
-        <section className="pb-10">
+        <section className="mb-10">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-1 h-6 rounded-full bg-red-500 shrink-0" />
             <h2 className="font-bold text-gray-900">Cybersecurity</h2>
@@ -299,6 +318,29 @@ export default async function LessonsPage() {
           <p className="text-sm text-gray-500 mb-4">Hashing, ciphers, password policies, HMAC, and recognising injection attacks — defensive fundamentals.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {cyLessons.map((lesson) => (
+              <LessonCard
+                key={lesson.id}
+                lesson={lesson}
+                completed={completedIds.has(lesson.id)}
+                locked={!isPro}
+              />
+            ))}
+          </div>
+          {!isPro && <UpgradeBanner />}
+        </section>
+
+        {/* ── Excel track ── */}
+        <section className="pb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-1 h-6 rounded-full bg-green-600 shrink-0" />
+            <h2 className="font-bold text-gray-900">Excel</h2>
+            <span className="text-xs text-gray-400">
+              {isPro ? `${xlCompleted} of ${xlLessons.length} completed` : "Pro plan required"}
+            </span>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">SUM, IF, VLOOKUP, COUNTIF, and pivot tables — every formula reproduced in pandas so the logic is transparent and scriptable.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {xlLessons.map((lesson) => (
               <LessonCard
                 key={lesson.id}
                 lesson={lesson}

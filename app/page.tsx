@@ -85,7 +85,7 @@ export default function LandingPage() {
 
       {/* Tracks */}
       <section className="max-w-6xl mx-auto px-6 py-8 pb-24">
-        <h2 className="text-3xl font-bold text-center mb-3">Six Tracks to Choose From</h2>
+        <h2 className="text-3xl font-bold text-center mb-3">Seven Tracks to Choose From</h2>
         <p className="text-center text-blue-100/70 mb-10">Start with the basics or jump straight into a career path.</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-yellow-500/10 border border-yellow-400/30 rounded-2xl p-6">
@@ -132,6 +132,15 @@ export default function LandingPage() {
             <h3 className="font-bold text-xl mb-1">Cybersecurity</h3>
             <p className="text-blue-100/70 text-sm mb-4">Hashing, ciphers, HMAC, password rules, and spotting injection attacks.</p>
             <div className="text-xs text-red-300">Pro plan required</div>
+          </div>
+          <div className="bg-green-600/10 border border-green-500/30 rounded-2xl p-6 relative overflow-hidden">
+            <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider bg-green-500/20 text-green-200 border border-green-500/30 px-2 py-0.5 rounded-full">
+              New
+            </span>
+            <div className="text-4xl mb-3">📈</div>
+            <h3 className="font-bold text-xl mb-1">Excel</h3>
+            <p className="text-blue-100/70 text-sm mb-4">SUM, IF, VLOOKUP, COUNTIF, and pivot tables — every formula reproduced in pandas.</p>
+            <div className="text-xs text-green-300">Pro plan required</div>
           </div>
         </div>
       </section>
