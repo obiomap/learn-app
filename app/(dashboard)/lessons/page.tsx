@@ -250,7 +250,7 @@ export default async function LessonsPage() {
               {isPro ? `${daCompleted} of ${daLessons.length} completed` : "Pro plan required"}
             </span>
           </div>
-          <p className="text-sm text-gray-500 mb-4">SQL + Python (pandas) — the analyst's everyday toolkit, project by project.</p>
+          <p className="text-sm text-gray-500 mb-4">SQL + Python (pandas) — the analyst&apos;s everyday toolkit, project by project.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {daLessons.map((lesson) => (
               <LessonCard

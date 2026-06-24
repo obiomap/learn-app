@@ -112,7 +112,7 @@ export default function LandingPage() {
             </span>
             <div className="text-4xl mb-3">📊</div>
             <h3 className="font-bold text-xl mb-1">Data Analyst</h3>
-            <p className="text-blue-100/70 text-sm mb-4">SQL + Python (pandas) — the analyst's everyday toolkit, project by project.</p>
+            <p className="text-blue-100/70 text-sm mb-4">SQL + Python (pandas) — the analyst&apos;s everyday toolkit, project by project.</p>
             <div className="text-xs text-violet-300">Pro plan required</div>
           </div>
           <div className="bg-rose-500/10 border border-rose-400/30 rounded-2xl p-6 relative overflow-hidden">
