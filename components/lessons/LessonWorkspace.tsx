@@ -73,8 +73,10 @@ export default function LessonWorkspace({ lesson, initialCode, initialCompleted,
     setOutput([]);
     setError(null);
 
+    const runtime = lesson.runtime ?? (lesson.track as "javascript" | "python" | "sql");
+
     try {
-      if (lesson.track === "sql") {
+      if (runtime === "sql") {
         const SQL = await loadSqlJs();
         const db = new SQL.Database();
         if (lesson.setupSql) db.run(lesson.setupSql);
@@ -90,7 +92,7 @@ export default function LessonWorkspace({ lesson, initialCode, initialCompleted,
         db.close();
         setOutput(lines);
         checkOutput(lines.join("\n"));
-      } else if (lesson.track === "javascript") {
+      } else if (runtime === "javascript") {
         const lines: string[] = [];
         const sandbox = {
           console: {
@@ -104,6 +106,9 @@ export default function LessonWorkspace({ lesson, initialCode, initialCompleted,
         checkOutput(lines.join("\n"));
       } else {
         const py = await loadPyodide();
+        if (lesson.pyPackages && lesson.pyPackages.length > 0) {
+          await py.loadPackage(lesson.pyPackages);
+        }
         const lines: string[] = [];
         py.globals.set("print_output", (text: string) => lines.push(text));
         await py.runPythonAsync(`
@@ -316,10 +321,15 @@ sys.stderr = _Capture()
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
                 </div>
                 <span className="text-xs text-gray-400 font-mono ml-1">
-                  {lesson.track === "python" ? "solution.py" : lesson.track === "sql" ? "query.sql" : "solution.js"}
+                  {(() => {
+                    const r = lesson.runtime ?? lesson.track;
+                    if (r === "python") return "solution.py";
+                    if (r === "sql") return "query.sql";
+                    return "solution.js";
+                  })()}
                 </span>
               </div>
-              <CodeEditor value={code} onChange={setCode} language={lesson.track} height="300px" />
+              <CodeEditor value={code} onChange={setCode} language={lesson.runtime ?? (lesson.track as "javascript" | "python" | "sql")} height="300px" />
             </div>
             <OutputPanel output={output} error={error} isRunning={running} />
             <AIAssistant

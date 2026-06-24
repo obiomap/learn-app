@@ -1,7 +1,11 @@
 export interface Lesson {
   id: string;
   title: string;
-  track: "javascript" | "python" | "sql";
+  track: "javascript" | "python" | "sql" | "data-analyst" | "ai-ml" | "cybersecurity";
+  /** Execution engine for this lesson. Defaults to track when track is js/python/sql. Required for data-analyst lessons. */
+  runtime?: "javascript" | "python" | "sql";
+  /** Pyodide packages to preload before running (only used by Python runtime). */
+  pyPackages?: string[];
   tier: "free" | "pro";
   order: number;
   description: string;
@@ -1304,6 +1308,413 @@ INSERT INTO contacts VALUES (3, 'Carol', 'Williams', 'carol.w@company.com');`,
       "LENGTH('alice.smith@company.com') = 23.",
     ],
   },
+
+  // ── Data Analyst Track ─────────────────────────────────────────────────
+  {
+    id: "da-01",
+    title: "Data Analyst: Exploring a Sales Dataset",
+    track: "data-analyst",
+    runtime: "sql",
+    tier: "pro",
+    order: 1,
+    description: "Every analysis starts the same way — look at the raw data. You'll write your first analytical SQL queries against a real-world style sales table.",
+    explanation:
+      `Before any aggregation or insight, an analyst answers three questions:\n  1. What columns are in this table?\n  2. How many rows are there?\n  3. What does the data actually look like?\n\nThe key patterns:\n  SELECT * FROM table LIMIT n        — peek at the first few rows\n  SELECT COUNT(*) FROM table         — total row count\n  SELECT DISTINCT column FROM table  — list unique values in a column\n\nLIMIT is essential — production tables can have millions of rows. Always limit your peek queries.`,
+    examples: [
+      { label: "Peek at the first rows", code: `SELECT * FROM sales LIMIT 3;\n-- Returns the first 3 rows so you can see the shape of the data` },
+      { label: "Count rows", code: `SELECT COUNT(*) AS total_orders FROM sales;\n-- A single-row result with the total order count` },
+      { label: "Find unique categories", code: `SELECT DISTINCT category FROM sales\nORDER BY category;\n-- One row per unique category, alphabetised` },
+    ],
+    project: "Mini project: You've been handed a new sales table. Find out how many unique product categories it contains.",
+    objective: "Print exactly:\ncategory\nAccessories\nElectronics\nFurniture",
+    starterCode: `-- Table: sales (id, product, category, units, revenue)\n-- List every distinct category, alphabetically\n\nSELECT DISTINCT category FROM sales\nORDER BY category;\n`,
+    setupSql: `CREATE TABLE sales (id INTEGER, product TEXT, category TEXT, units INTEGER, revenue INTEGER);
+INSERT INTO sales VALUES (1, 'Laptop',    'Electronics', 3,  2997);
+INSERT INTO sales VALUES (2, 'Monitor',   'Electronics', 5,  1995);
+INSERT INTO sales VALUES (3, 'Mouse',     'Accessories', 20, 580);
+INSERT INTO sales VALUES (4, 'Keyboard',  'Accessories', 12, 900);
+INSERT INTO sales VALUES (5, 'Desk',      'Furniture',   2,  800);
+INSERT INTO sales VALUES (6, 'Chair',     'Furniture',   4,  1200);
+INSERT INTO sales VALUES (7, 'Headphones','Electronics', 8,  1600);
+INSERT INTO sales VALUES (8, 'Cable',     'Accessories', 50, 250);`,
+    expectedOutput: "category\nAccessories\nElectronics\nFurniture",
+    hints: [
+      "DISTINCT removes duplicate values — three categories appear, but each only once in the result.",
+      "ORDER BY category sorts the result alphabetically.",
+      "The starter code is already correct — just run it!",
+    ],
+  },
+  {
+    id: "da-02",
+    title: "Data Analyst: pandas DataFrames",
+    track: "data-analyst",
+    runtime: "python",
+    pyPackages: ["pandas"],
+    tier: "pro",
+    order: 2,
+    description: "pandas is the workhorse of data analysis in Python. A DataFrame is a table you can filter, summarise, and transform in a single line.",
+    explanation:
+      `Import pandas conventionally as pd:\n  import pandas as pd\n\nA DataFrame is a 2D table built from a dictionary of columns:\n  df = pd.DataFrame({"name": [...], "price": [...]})\n\nKey inspection methods:\n  df.shape            — (rows, columns)\n  df.columns.tolist() — list of column names\n  df.head(n)          — first n rows\n  df["col"].sum()     — total of one column\n  df["col"].mean()    — average of one column\n  df["col"].tolist()  — column as a plain Python list\n\nDataFrames are the table; Series are individual columns.`,
+    examples: [
+      { label: "Build a DataFrame", code: `import pandas as pd\n\ndf = pd.DataFrame({\n    "product": ["Laptop", "Mouse"],\n    "price": [999, 25],\n})\nprint(df.shape)\n# (2, 2)` },
+      { label: "Inspect a column", code: `print(df["price"].sum())   # 1024\nprint(df["price"].mean())  # 512.0` },
+      { label: "Get column names", code: `print(df.columns.tolist())\n# ['product', 'price']` },
+    ],
+    project: "Mini project: A sales DataFrame is provided. Print the row count, total units sold, and the list of product names.",
+    objective: "Print exactly:\n5\n50\n['Laptop', 'Mouse', 'Keyboard', 'Monitor', 'Cable']",
+    starterCode: `# Data Analyst: pandas Basics\nimport pandas as pd\n\ndf = pd.DataFrame({\n    "product": ["Laptop", "Mouse", "Keyboard", "Monitor", "Cable"],\n    "units":   [3, 12, 8, 2, 25],\n    "price":   [999, 25, 75, 350, 9],\n})\n\n# 1. Print the number of rows (df.shape[0])\n# 2. Print the total units sold\n# 3. Print the list of product names\n`,
+    expectedOutput: "5\n50\n['Laptop', 'Mouse', 'Keyboard', 'Monitor', 'Cable']",
+    hints: [
+      "df.shape[0] is the row count; df.shape[1] is the column count.",
+      'df["units"].sum() returns the total units sold (3 + 12 + 8 + 2 + 25 = 50).',
+      'df["product"].tolist() converts the product column to a plain Python list.',
+    ],
+  },
+  {
+    id: "da-03",
+    title: "Data Analyst: Sales Totals by Category",
+    track: "data-analyst",
+    runtime: "sql",
+    tier: "pro",
+    order: 3,
+    description: "Stakeholders rarely care about individual rows — they want totals, averages, and rankings. GROUP BY is how analysts turn raw rows into answers.",
+    explanation:
+      `The analyst's go-to pattern:\n  SELECT group_column, SUM(metric) AS total\n  FROM table\n  GROUP BY group_column\n  ORDER BY total DESC;\n\nUseful aggregates for analysis:\n  SUM(col)   — total\n  AVG(col)   — average\n  COUNT(*)   — row count per group\n  MAX(col)   — peak value\n  MIN(col)   — lowest value\n\nGROUP BY collapses many rows into one row per group. ORDER BY ... DESC ranks the groups for a stakeholder-ready answer.`,
+    examples: [
+      { label: "Total per group", code: `SELECT category, SUM(revenue) AS total_revenue\nFROM sales\nGROUP BY category\nORDER BY total_revenue DESC;` },
+      { label: "Average order size", code: `SELECT category, AVG(units) AS avg_units\nFROM sales\nGROUP BY category;` },
+      { label: "Count + total combined", code: `SELECT category,\n       COUNT(*) AS orders,\n       SUM(revenue) AS revenue\nFROM sales\nGROUP BY category;` },
+    ],
+    project: "Mini project: A sales VP wants total revenue per category, ranked from highest earner to lowest.",
+    objective: "Print exactly:\ncategory | total_revenue\nElectronics | 6592\nFurniture | 2000\nAccessories | 1730",
+    starterCode: `-- Table: sales (id, product, category, units, revenue)\n-- Show total revenue per category, highest first\n\nSELECT category, SUM(revenue) AS total_revenue\nFROM sales\nGROUP BY category\nORDER BY total_revenue DESC;\n`,
+    setupSql: `CREATE TABLE sales (id INTEGER, product TEXT, category TEXT, units INTEGER, revenue INTEGER);
+INSERT INTO sales VALUES (1, 'Laptop',    'Electronics', 3,  2997);
+INSERT INTO sales VALUES (2, 'Monitor',   'Electronics', 5,  1995);
+INSERT INTO sales VALUES (3, 'Mouse',     'Accessories', 20, 580);
+INSERT INTO sales VALUES (4, 'Keyboard',  'Accessories', 12, 900);
+INSERT INTO sales VALUES (5, 'Desk',      'Furniture',   2,  800);
+INSERT INTO sales VALUES (6, 'Chair',     'Furniture',   4,  1200);
+INSERT INTO sales VALUES (7, 'Headphones','Electronics', 8,  1600);
+INSERT INTO sales VALUES (8, 'Cable',     'Accessories', 50, 250);`,
+    expectedOutput: "category | total_revenue\nElectronics | 6592\nFurniture | 2000\nAccessories | 1730",
+    hints: [
+      "GROUP BY category collapses each category's rows into one summary row.",
+      "SUM(revenue) totals revenue inside each group.",
+      "ORDER BY total_revenue DESC ranks the highest earner first — Electronics wins with 2997+1995+1600 = 6592.",
+    ],
+  },
+  {
+    id: "da-04",
+    title: "Data Analyst: Cleaning Messy Data",
+    track: "data-analyst",
+    runtime: "python",
+    pyPackages: ["pandas"],
+    tier: "pro",
+    order: 4,
+    description: "Real datasets are messy — missing values, wrong types, stray whitespace. Cleaning is half of every data analyst's job.",
+    explanation:
+      `Common pandas cleaning operations:\n\n  df.dropna()              — drop any row with a missing value\n  df.dropna(subset=["x"])  — drop rows where column x is missing\n  df["x"].fillna(0)        — replace NaN in column x with 0\n  df["x"].astype(int)      — convert column to integer\n  df["x"].str.strip()      — strip whitespace from text column\n\nNaN is pandas' marker for missing data. Always decide whether to drop the row or fill it — there's no default-correct choice; it depends on the analysis.\n\nlen(df) returns the row count, same as df.shape[0].`,
+    examples: [
+      { label: "Drop rows with missing values", code: `df = pd.DataFrame({"x": [1, None, 3], "y": [10, 20, None]})\nclean = df.dropna()\nprint(len(clean))  # 1 (only the first row has no NaN)` },
+      { label: "Fill missing values", code: `df["price"] = df["price"].fillna(0)\n# All NaN in the price column become 0` },
+      { label: "Convert and strip", code: `df["name"] = df["name"].str.strip()\ndf["units"] = df["units"].astype(int)` },
+    ],
+    project: "Mini project: A messy orders DataFrame has missing units. Drop rows where units is missing, then print the row count and total units sold.",
+    objective: "Print exactly:\n4\n40",
+    starterCode: `# Data Analyst: Cleaning Messy Data\nimport pandas as pd\nimport numpy as np\n\ndf = pd.DataFrame({\n    "order_id": [1, 2, 3, 4, 5, 6],\n    "product":  ["Laptop", "Mouse", "Keyboard", "Monitor", "Cable", "Desk"],\n    "units":    [3, np.nan, 12, 8, np.nan, 17],\n    "revenue":  [999, 25, 75, 350, 9, 800],\n})\n\n# 1. Drop rows where units is NaN\n# 2. Convert units to int (NaN forced the column to float — int makes the sum prettier)\n# 3. Print the number of remaining rows\n# 4. Print the total units sold across the remaining rows\n`,
+    expectedOutput: "4\n40",
+    hints: [
+      'clean = df.dropna(subset=["units"]) keeps only rows where units is present.',
+      'clean["units"] = clean["units"].astype(int) converts the column from float to int.',
+      "After dropping rows 2 and 5, 4 rows remain with units 3 + 12 + 8 + 17 = 40.",
+    ],
+  },
+  {
+    id: "da-05",
+    title: "Data Analyst: Joining DataFrames",
+    track: "data-analyst",
+    runtime: "python",
+    pyPackages: ["pandas"],
+    tier: "pro",
+    order: 5,
+    description: "Real-world analysis pulls from multiple tables — orders + customers + products. pandas merge is the join operation that ties them together.",
+    explanation:
+      `pd.merge combines two DataFrames on a shared key column:\n  pd.merge(orders, customers, on="customer_id", how="inner")\n\nJoin types (how=):\n  inner — only keys present in BOTH frames (default)\n  left  — all keys from left, NaN where right is missing\n  right — all keys from right\n  outer — everything from both, NaN for non-matches\n\nIf the key columns have different names, use left_on / right_on instead of on.\n\nAfter merging, you have one wide DataFrame with columns from both inputs.`,
+    examples: [
+      { label: "Basic inner join", code: `orders = pd.DataFrame({\n    "order_id": [1, 2],\n    "cust_id":  [10, 20],\n    "total":    [99, 250],\n})\ncustomers = pd.DataFrame({\n    "cust_id": [10, 20],\n    "name":    ["Alice", "Bob"],\n})\nmerged = pd.merge(orders, customers, on="cust_id")\nprint(merged.shape)  # (2, 4)` },
+      { label: "Pick columns after merge", code: `result = merged[["name", "total"]]\nprint(result.values.tolist())\n# [['Alice', 99], ['Bob', 250]]` },
+      { label: "Left join keeps unmatched rows", code: `pd.merge(orders, customers, on="cust_id", how="left")\n# Every order is kept; customer columns are NaN if no match` },
+    ],
+    project: "Mini project: Join orders with customers, then print the total revenue per customer name (highest first).",
+    objective: "Print exactly:\n[['Bob', 425], ['Alice', 150]]",
+    starterCode: `# Data Analyst: Joining DataFrames\nimport pandas as pd\n\norders = pd.DataFrame({\n    "order_id": [1, 2, 3, 4],\n    "cust_id":  [10, 20, 10, 20],\n    "total":    [99, 250, 51, 175],\n})\ncustomers = pd.DataFrame({\n    "cust_id": [10, 20],\n    "name":    ["Alice", "Bob"],\n})\n\n# 1. Merge orders and customers on cust_id\n# 2. Group by name, sum the total column\n# 3. Sort descending and print as a list of [name, total] pairs\n#    Hint: result.reset_index().values.tolist()\n`,
+    expectedOutput: "[['Bob', 425], ['Alice', 150]]",
+    hints: [
+      'merged = pd.merge(orders, customers, on="cust_id")',
+      'totals = merged.groupby("name")["total"].sum().sort_values(ascending=False)',
+      "print(totals.reset_index().values.tolist())  # converts to a plain Python list of [name, total] pairs",
+    ],
+  },
+
+  // ── AI / ML Track ──────────────────────────────────────────────────────
+  {
+    id: "ml-01",
+    title: "AI/ML: NumPy Foundations",
+    track: "ai-ml",
+    runtime: "python",
+    pyPackages: ["numpy"],
+    tier: "pro",
+    order: 1,
+    description: "Every machine learning library is built on NumPy. Before you can train models, you need to be fluent with arrays, shapes, and vectorised math.",
+    explanation:
+      `Import the convention:\n  import numpy as np\n\nArrays vs Python lists:\n  - Arrays are fixed-size, single-type, and fast\n  - Math operations are element-wise: a + b adds matching elements\n  - No Python-level for loops needed — operations vectorise automatically\n\nKey operations:\n  np.array([1, 2, 3])       — build an array\n  a.shape                   — array dimensions as a tuple\n  a + b, a * 2              — element-wise math\n  a.mean(), a.sum()         — reductions\n  np.dot(a, b)              — dot product (1D) or matrix multiply (2D)\n\nThe dot product is the most important operation in ML — it's how neurons combine inputs and weights.`,
+    examples: [
+      { label: "Build and inspect an array", code: `import numpy as np\na = np.array([1, 2, 3, 4])\nprint(a.shape)   # (4,)\nprint(a * 10)    # [10 20 30 40]` },
+      { label: "Element-wise math", code: `import numpy as np\nx = np.array([1, 2, 3])\ny = np.array([10, 20, 30])\nprint(x + y)     # [11 22 33]\nprint(x * y)     # [10 40 90]` },
+      { label: "Dot product", code: `import numpy as np\nweights = np.array([0.2, 0.5, 0.3])\nfeatures = np.array([100, 50, 20])\nprint(np.dot(weights, features))   # 51.0` },
+    ],
+    project: "Mini project: A neuron computes weight·features + bias. Wire up the dot product and bias to produce a single output.",
+    objective: "Print exactly:\n(5,)\n[3 4 5 6 7]\n3.0\n30",
+    starterCode: `# AI/ML: NumPy Foundations\nimport numpy as np\n\na = np.array([1, 2, 3, 4, 5])\nb = np.array([2, 2, 2, 2, 2])\n\n# 1. Print a's shape\nprint(a.shape)\n# 2. Print element-wise sum a + b\nprint(a + b)\n# 3. Print the mean of a\nprint(a.mean())\n# 4. Print the dot product of a and b\nprint(np.dot(a, b))\n`,
+    expectedOutput: "(5,)\n[3 4 5 6 7]\n3.0\n30",
+    hints: [
+      "a.shape returns the tuple (5,) for a 1D array of length 5.",
+      "a + b adds element-by-element: [1+2, 2+2, 3+2, 4+2, 5+2] = [3, 4, 5, 6, 7].",
+      "np.dot of two 1D arrays multiplies corresponding elements and sums: 1*2 + 2*2 + ... = 30.",
+    ],
+  },
+  {
+    id: "ml-02",
+    title: "AI/ML: Linear Regression from Scratch",
+    track: "ai-ml",
+    runtime: "python",
+    pyPackages: ["numpy"],
+    tier: "pro",
+    order: 2,
+    description: "Linear regression is the 'hello world' of machine learning — find the best-fit line through a set of points. Once you understand it, every other model is a variation on the theme.",
+    explanation:
+      `A linear model: y = slope · x + intercept\n\nGiven training data (x_i, y_i), the goal is to find the slope and intercept that minimise prediction error.\n\nThe shortcut: np.polyfit(x, y, 1) returns the optimal [slope, intercept] for degree-1 polynomial (a line).\n\nOnce trained, predicting a new value is just:\n  y_pred = slope * new_x + intercept\n\nThis is exactly what scikit-learn's LinearRegression does internally — it's worth knowing the math under the hood.`,
+    examples: [
+      { label: "Perfect line", code: `import numpy as np\nx = np.array([1, 2, 3])\ny = np.array([2, 4, 6])\nslope, intercept = np.polyfit(x, y, 1)\nprint(slope, intercept)\n# 2.0 ~0.0` },
+      { label: "Noisy data", code: `import numpy as np\nx = np.array([1, 2, 3, 4, 5])\ny = np.array([1.1, 1.9, 3.2, 3.9, 5.1])\nslope, intercept = np.polyfit(x, y, 1)\nprint(round(slope, 2))   # ~0.99\nprint(round(intercept, 2)) # ~0.07` },
+      { label: "Predict new values", code: `# Once you have slope/intercept:\nnew_x = 10\ny_pred = slope * new_x + intercept\nprint(y_pred)` },
+    ],
+    project: "Mini project: Fit a line to y = 2x + 1 (5 training points), then predict y when x = 6.",
+    objective: "Print exactly:\nslope: 2.0\nintercept: 1.0\npredict x=6: 13.0",
+    starterCode: `# AI/ML: Linear Regression from Scratch\nimport numpy as np\n\nx = np.array([1, 2, 3, 4, 5])\ny = np.array([3, 5, 7, 9, 11])   # y = 2x + 1\n\n# 1. Fit a degree-1 polynomial to get slope and intercept\nslope, intercept = np.polyfit(x, y, 1)\n\n# 2. Print rounded slope, rounded intercept, and predict y at x=6\nprint(f"slope: {round(slope, 2)}")\nprint(f"intercept: {round(intercept, 2)}")\nprint(f"predict x=6: {round(slope * 6 + intercept, 2)}")\n`,
+    expectedOutput: "slope: 2.0\nintercept: 1.0\npredict x=6: 13.0",
+    hints: [
+      "np.polyfit(x, y, 1) fits a degree-1 polynomial (a line) and returns [slope, intercept].",
+      "The training data follows y = 2x + 1 exactly, so the fit is perfect.",
+      "predict x=6: 2*6 + 1 = 13. round() trims floating-point noise.",
+    ],
+  },
+  {
+    id: "ml-03",
+    title: "AI/ML: Your First Classifier",
+    track: "ai-ml",
+    runtime: "python",
+    pyPackages: ["scikit-learn"],
+    tier: "pro",
+    order: 3,
+    description: "Classification is the most common ML task: given some features, predict a category. scikit-learn's API is the industry standard — fit, predict, score.",
+    explanation:
+      `scikit-learn's classifier pattern is always the same three steps:\n\n  clf = DecisionTreeClassifier()\n  clf.fit(X, y)            — train on examples\n  preds = clf.predict(X_new)  — predict for new inputs\n\nKey objects:\n  X — 2D array of features (rows = samples, columns = features)\n  y — 1D array of labels (one per row in X)\n\nDecisionTreeClassifier learns simple if-then rules from the training data. It's intuitive, fast, and a great baseline.\n\nrandom_state pins the random number generator so you get reproducible results — essential for testing and grading.`,
+    examples: [
+      { label: "Train a classifier", code: `from sklearn.tree import DecisionTreeClassifier\nimport numpy as np\n\nX = np.array([[1], [2], [10], [11]])\ny = np.array([0, 0, 1, 1])\n\nclf = DecisionTreeClassifier(random_state=42)\nclf.fit(X, y)\nprint(clf.predict([[3], [9]]).tolist())\n# [0, 1]` },
+      { label: "Score on training data", code: `print(clf.score(X, y))\n# 1.0  (perfect on training data)` },
+      { label: "Multi-feature input", code: `# Each row is one sample with two features\nX = np.array([[1, 2], [2, 3], [8, 9], [9, 8]])\ny = np.array([0, 0, 1, 1])` },
+    ],
+    project: "Mini project: Train a decision tree on a tiny 'small vs large' dataset and predict for two new points.",
+    objective: "Print exactly:\nPredictions: [0, 1]\nAccuracy: 1.0",
+    starterCode: `# AI/ML: Your First Classifier\nfrom sklearn.tree import DecisionTreeClassifier\nimport numpy as np\n\n# Two features: width, height. Label 0 = small, 1 = large.\nX = np.array([\n    [1, 2], [2, 3], [3, 4],\n    [6, 7], [7, 8], [8, 9],\n])\ny = np.array([0, 0, 0, 1, 1, 1])\n\n# 1. Train a DecisionTreeClassifier (random_state=42 for reproducibility)\nclf = DecisionTreeClassifier(random_state=42)\nclf.fit(X, y)\n\n# 2. Predict for [[2, 2], [7, 7]]\npreds = clf.predict([[2, 2], [7, 7]])\n\n# 3. Print predictions and the classifier's accuracy on the training data\nprint(f"Predictions: {preds.tolist()}")\nprint(f"Accuracy: {clf.score(X, y)}")\n`,
+    expectedOutput: "Predictions: [0, 1]\nAccuracy: 1.0",
+    hints: [
+      "DecisionTreeClassifier(random_state=42) makes results reproducible across runs.",
+      "clf.predict returns a numpy array — .tolist() converts it to a plain Python list for clean printing.",
+      "clf.score returns the fraction of correct predictions — 1.0 means perfect.",
+    ],
+  },
+  {
+    id: "ml-04",
+    title: "AI/ML: Train / Test Split",
+    track: "ai-ml",
+    runtime: "python",
+    pyPackages: ["scikit-learn"],
+    tier: "pro",
+    order: 4,
+    description: "A model that scores 100% on its training data could still be useless. The only way to measure real performance is to test on data the model has never seen.",
+    explanation:
+      `Why split your data?\n  - If you train and test on the same rows, the model can 'memorise' instead of 'learn'\n  - Test accuracy on held-out data is the honest measure of generalisation\n\nscikit-learn's helper:\n  from sklearn.model_selection import train_test_split\n  X_train, X_test, y_train, y_test = train_test_split(\n      X, y, test_size=0.25, random_state=42\n  )\n\n  - test_size=0.25 — 25% of rows reserved for testing\n  - random_state — pins which rows go where (for reproducibility)\n\nTrain on X_train/y_train, score on X_test/y_test. The test score is what you report to stakeholders.`,
+    examples: [
+      { label: "Standard split", code: `from sklearn.model_selection import train_test_split\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42\n)\nprint(len(X_train), len(X_test))` },
+      { label: "Train then score on test", code: `clf.fit(X_train, y_train)\ntest_score = clf.score(X_test, y_test)\nprint(f"Test accuracy: {test_score}")` },
+      { label: "Stratified split (balanced classes)", code: `train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)\n# Keeps the same class proportions in train and test` },
+    ],
+    project: "Mini project: Split a small linearly separable dataset 75/25, train a tree, and report sizes plus test accuracy.",
+    objective: "Print exactly:\nTrain size: 15\nTest size: 5\nAccuracy: 1.0",
+    starterCode: `# AI/ML: Train / Test Split\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.tree import DecisionTreeClassifier\nimport numpy as np\n\n# Linearly separable: first 10 belong to class 0, last 10 to class 1\nX = np.array([[i, i * 2] for i in range(20)])\ny = np.array([0 if i < 10 else 1 for i in range(20)])\n\n# 1. Split 75% train / 25% test with random_state=42\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=42\n)\n\n# 2. Train a DecisionTreeClassifier\nclf = DecisionTreeClassifier(random_state=42)\nclf.fit(X_train, y_train)\n\n# 3. Print train size, test size, and test accuracy\nprint(f"Train size: {len(X_train)}")\nprint(f"Test size: {len(X_test)}")\nprint(f"Accuracy: {clf.score(X_test, y_test)}")\n`,
+    expectedOutput: "Train size: 15\nTest size: 5\nAccuracy: 1.0",
+    hints: [
+      "20 samples × 0.25 test_size = 5 test samples and 15 training samples.",
+      "The data is linearly separable, so a decision tree achieves 1.0 accuracy on the test set.",
+      "random_state=42 in both split and classifier makes the result fully reproducible.",
+    ],
+  },
+  {
+    id: "ml-05",
+    title: "AI/ML: K-Means Clustering",
+    track: "ai-ml",
+    runtime: "python",
+    pyPackages: ["scikit-learn"],
+    tier: "pro",
+    order: 5,
+    description: "Sometimes you have data but no labels. Clustering groups similar points together — useful for customer segmentation, anomaly detection, and exploratory analysis.",
+    explanation:
+      `Supervised learning needs (X, y) labelled pairs. Unsupervised learning works on X alone.\n\nK-Means finds k cluster centres that minimise the average distance from each point to its nearest centre:\n\n  from sklearn.cluster import KMeans\n  kmeans = KMeans(n_clusters=2, random_state=42, n_init=10)\n  kmeans.fit(X)\n  labels = kmeans.labels_           — which cluster each training point belongs to\n  preds  = kmeans.predict(new_X)    — cluster for new points\n  centres = kmeans.cluster_centers_ — 2D array, one row per cluster\n\nThe specific label numbers (0 vs 1) are arbitrary — they're just IDs. What matters is which points share a cluster.`,
+    examples: [
+      { label: "Cluster two obvious blobs", code: `from sklearn.cluster import KMeans\nimport numpy as np\nX = np.array([[1, 1], [1, 2], [10, 10], [10, 11]])\nkm = KMeans(n_clusters=2, random_state=42, n_init=10)\nkm.fit(X)\nprint(km.labels_)` },
+      { label: "Predict for new points", code: `preds = km.predict([[1, 1], [10, 10]])\nprint(preds[0] != preds[1])  # True — different clusters` },
+      { label: "Inspect centres", code: `print(km.cluster_centers_.shape)\n# (2, 2)  — 2 clusters, 2 features` },
+    ],
+    project: "Mini project: Cluster 8 points (4 near origin, 4 near (9, 9)) into 2 groups, then confirm new points land in different clusters.",
+    objective: "Print exactly:\nDifferent clusters: True\nNumber of clusters: 2",
+    starterCode: `# AI/ML: K-Means Clustering\nfrom sklearn.cluster import KMeans\nimport numpy as np\n\nX = np.array([\n    [1, 1], [1, 2], [2, 1], [2, 2],   # near origin\n    [8, 8], [8, 9], [9, 8], [9, 9],   # near (9, 9)\n])\n\n# 1. Fit KMeans with 2 clusters (random_state=42, n_init=10)\nkmeans = KMeans(n_clusters=2, random_state=42, n_init=10)\nkmeans.fit(X)\n\n# 2. Predict cluster IDs for [1.5, 1.5] and [8.5, 8.5]\npreds = kmeans.predict([[1.5, 1.5], [8.5, 8.5]])\n\n# 3. Confirm the two new points belong to different clusters\nprint(f"Different clusters: {preds[0] != preds[1]}")\nprint(f"Number of clusters: {len(kmeans.cluster_centers_)}")\n`,
+    expectedOutput: "Different clusters: True\nNumber of clusters: 2",
+    hints: [
+      "n_init=10 silences a sklearn warning by running k-means with 10 different initialisations.",
+      "Cluster labels (0/1) are arbitrary — comparing preds[0] != preds[1] is label-agnostic.",
+      "len(kmeans.cluster_centers_) equals n_clusters, since there's one centre per cluster.",
+    ],
+  },
+
+  // ── Cybersecurity Track ────────────────────────────────────────────────
+  {
+    id: "cy-01",
+    title: "Cybersecurity: Hashing Passwords",
+    track: "cybersecurity",
+    runtime: "python",
+    tier: "pro",
+    order: 1,
+    description: "Storing plaintext passwords is malpractice. Hashing turns a password into an irreversible fingerprint — even a leaked database is useless to an attacker.",
+    explanation:
+      `A hash function is a one-way transform: easy to compute, infeasible to reverse.\n\nSHA-256 is one of the workhorses:\n  import hashlib\n  digest = hashlib.sha256(b"hello").hexdigest()\n\nKey properties:\n  - Deterministic — same input always yields the same hash\n  - Fixed-length output (SHA-256 → 64 hex chars / 256 bits)\n  - Avalanche — changing one bit of input changes ~half the output\n\nIn real systems you also salt the password (mix in a random per-user value) and use a slow hash like bcrypt or argon2. SHA-256 alone is too fast for password storage in production — but it's the foundation to understand first.`,
+    examples: [
+      { label: "Basic SHA-256", code: `import hashlib\nprint(hashlib.sha256(b"password").hexdigest())\n# 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` },
+      { label: "Hashing strings", code: `text = "hello"\ndigest = hashlib.sha256(text.encode()).hexdigest()\nprint(len(digest))  # 64 hex chars` },
+      { label: "Comparing hashes", code: `a = hashlib.sha256(b"secret").hexdigest()\nb = hashlib.sha256(b"secret").hexdigest()\nprint(a == b)  # True — hashes are deterministic` },
+    ],
+    project: "Mini project: Hash the password 'hello' with SHA-256, print the digest, its length, and confirm the same input always hashes to the same value.",
+    objective: "Print exactly:\n2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\n64\nTrue",
+    starterCode: `# Cybersecurity: Hashing Passwords\nimport hashlib\n\npassword = "hello"\nhashed = hashlib.sha256(password.encode()).hexdigest()\n\n# 1. Print the hex digest\nprint(hashed)\n# 2. Print the length of the digest (should be 64 hex chars)\nprint(len(hashed))\n# 3. Confirm a second hash of the same input matches\nsecond = hashlib.sha256("hello".encode()).hexdigest()\nprint(hashed == second)\n`,
+    expectedOutput: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\n64\nTrue",
+    hints: [
+      "encode() turns a string into bytes — SHA-256 hashes bytes, not text.",
+      "SHA-256 always returns 256 bits = 64 hex characters.",
+      'sha256("hello") is a well-known test vector: starts with 2cf24dba...',
+    ],
+  },
+  {
+    id: "cy-02",
+    title: "Cybersecurity: Caesar Cipher",
+    track: "cybersecurity",
+    runtime: "python",
+    tier: "pro",
+    order: 2,
+    description: "The Caesar cipher is a 2,000-year-old encryption scheme — and a perfect first cryptography exercise. You'll learn how shift ciphers work and why they're trivially broken.",
+    explanation:
+      `A Caesar cipher shifts each letter by a fixed number of positions in the alphabet:\n  shift +3:  A → D, B → E, ..., Z → C\n\nKey ideas:\n  - ord(ch) gives the Unicode code point (A = 65, a = 97)\n  - chr(n) converts back to a character\n  - Modulo 26 wraps around the alphabet\n\nThe formula for a letter:\n  shifted = (ord(ch) - base + shift) % 26 + base\n  (base = 65 for uppercase, 97 for lowercase)\n\nSecurity-wise: only 25 possible shifts, so an attacker can brute-force every option in milliseconds. Real ciphers use much larger key spaces.`,
+    examples: [
+      { label: "Single character shift", code: `ch = 'A'\nshifted = chr((ord(ch) - 65 + 3) % 26 + 65)\nprint(shifted)  # D` },
+      { label: "Encode and decode", code: `def encode(text, shift):\n    out = ""\n    for ch in text:\n        if ch.isupper():\n            out += chr((ord(ch) - 65 + shift) % 26 + 65)\n        elif ch.islower():\n            out += chr((ord(ch) - 97 + shift) % 26 + 97)\n        else:\n            out += ch\n    return out\n\nprint(encode("ABC", 1))   # BCD\nprint(encode("BCD", -1))  # ABC` },
+      { label: "Wrap-around", code: `# Z + 1 → A (wraps with % 26)\nprint(encode("XYZ", 3))  # ABC` },
+    ],
+    project: "Mini project: Build an encode() function. Encode 'Hello' with shift +3, decode it back with shift -3, and encode 'Attack at dawn' with shift +5.",
+    objective: "Print exactly:\nKhoor\nHello\nFyyfhp fy ifbs",
+    starterCode: `# Cybersecurity: Caesar Cipher\n\ndef encode(text, shift):\n    out = ""\n    for ch in text:\n        if ch.isupper():\n            out += chr((ord(ch) - 65 + shift) % 26 + 65)\n        elif ch.islower():\n            out += chr((ord(ch) - 97 + shift) % 26 + 97)\n        else:\n            out += ch\n    return out\n\nprint(encode("Hello", 3))\nprint(encode("Khoor", -3))\nprint(encode("Attack at dawn", 5))\n`,
+    expectedOutput: "Khoor\nHello\nFyyfhp fy ifbs",
+    hints: [
+      "% 26 handles wrap-around: shifting Z by 1 brings you to A.",
+      "Non-letters (spaces, punctuation) should pass through unchanged.",
+      "Decoding is just encoding with the negative shift.",
+    ],
+  },
+  {
+    id: "cy-03",
+    title: "Cybersecurity: Password Strength Rules",
+    track: "cybersecurity",
+    runtime: "python",
+    tier: "pro",
+    order: 3,
+    description: "Password policies exist to make brute-force attacks expensive. You'll codify the standard NIST-style rules: length, character variety, and no common words.",
+    explanation:
+      `Common password strength rules:\n  - Minimum length (often 8 or 12)\n  - At least one uppercase letter\n  - At least one digit\n  - At least one symbol\n  - Not a known common password\n\nThe Python re module makes each check a one-liner:\n  re.search(r'[A-Z]', s)     — any uppercase\n  re.search(r'\\d', s)        — any digit\n  re.search(r'[!@#$%^&*]', s) — any of these symbols\n\nReturn a clear failure reason so users can fix their password — never just say 'invalid'.`,
+    examples: [
+      { label: "Single rule check", code: `import re\npassword = "abc123"\nprint(bool(re.search(r'\\d', password)))  # True — has a digit` },
+      { label: "Multiple checks", code: `def has_upper(s):  return bool(re.search(r'[A-Z]', s))\ndef has_digit(s):  return bool(re.search(r'\\d', s))\ndef has_symbol(s): return bool(re.search(r'[!@#$%^&*]', s))` },
+      { label: "Collecting issues", code: `issues = []\nif len(pwd) < 8: issues.append("too short")\nif not has_upper(pwd): issues.append("no uppercase")\nprint(", ".join(issues) if issues else "strong")` },
+    ],
+    project: "Mini project: Write check_strength(password) — return 'strong' if all rules pass, otherwise a comma-separated list of failures.",
+    objective: "Print exactly:\nno uppercase, no digit, no symbol\nno symbol\nstrong",
+    starterCode: `# Cybersecurity: Password Strength Rules\nimport re\n\ndef check_strength(pwd):\n    issues = []\n    if len(pwd) < 8:                       issues.append("too short")\n    if not re.search(r'[A-Z]', pwd):       issues.append("no uppercase")\n    if not re.search(r'\\d', pwd):          issues.append("no digit")\n    if not re.search(r'[!@#$%^&*]', pwd):  issues.append("no symbol")\n    return ", ".join(issues) if issues else "strong"\n\nprint(check_strength("password"))   # 8 chars, lowercase only\nprint(check_strength("Password1"))  # missing symbol\nprint(check_strength("Secure!42"))  # passes everything\n`,
+    expectedOutput: "no uppercase, no digit, no symbol\nno symbol\nstrong",
+    hints: [
+      "'password' has length 8 (not too short), but it's all lowercase with no digit and no symbol.",
+      "'Password1' has uppercase + digit but no symbol from the allowed set.",
+      "'Secure!42' has all four: uppercase S, lowercase, digit, and ! symbol.",
+    ],
+  },
+  {
+    id: "cy-04",
+    title: "Cybersecurity: HMAC Message Authentication",
+    track: "cybersecurity",
+    runtime: "python",
+    tier: "pro",
+    order: 4,
+    description: "Hashing proves integrity but not authorship — anyone can hash anything. HMAC binds a secret key to the hash, so only someone with the key can produce a valid signature.",
+    explanation:
+      `HMAC (Hash-based Message Authentication Code) takes a secret key + a message and produces a signature:\n\n  import hmac, hashlib\n  sig = hmac.new(secret, message, hashlib.sha256).hexdigest()\n\nUse cases:\n  - Signing API requests (Stripe, AWS, etc.)\n  - JWT tokens\n  - Webhook verification\n  - Anti-tampering on cookies / URLs\n\nKey hygiene:\n  - Always use hmac.compare_digest() for verification — it's constant-time, so attackers can't time-side-channel your check\n  - Never use == on signatures\n\nIf an attacker tampers with the message, the signature won't match — the verification fails.`,
+    examples: [
+      { label: "Sign a message", code: `import hmac, hashlib\nkey = b"secret-key"\nsig = hmac.new(key, b"hello", hashlib.sha256).hexdigest()\nprint(len(sig))  # 64` },
+      { label: "Verify", code: `def verify(msg, signature, key):\n    expected = hmac.new(key, msg, hashlib.sha256).hexdigest()\n    return hmac.compare_digest(expected, signature)` },
+      { label: "Tampered messages fail", code: `sig = hmac.new(b"k", b"user=alice", hashlib.sha256).hexdigest()\n# Attacker tries to swap to admin — won't have the right signature\nprint(verify(b"user=admin", sig, b"k"))  # False` },
+    ],
+    project: "Mini project: Sign 'user=alice' with a secret key. Confirm the signature verifies for the original message but fails for a tampered one.",
+    objective: "Print exactly:\n64\nTrue\nFalse",
+    starterCode: `# Cybersecurity: HMAC Message Authentication\nimport hmac\nimport hashlib\n\nSECRET = b"my-secret-key"\n\ndef sign(message):\n    return hmac.new(SECRET, message.encode(), hashlib.sha256).hexdigest()\n\ndef verify(message, signature):\n    expected = sign(message)\n    return hmac.compare_digest(expected, signature)\n\ntoken = sign("user=alice")\nprint(len(token))                       # 64 hex chars\nprint(verify("user=alice", token))      # legitimate request\nprint(verify("user=admin", token))      # attacker tampered with the message\n`,
+    expectedOutput: "64\nTrue\nFalse",
+    hints: [
+      "hmac.new(key, message, algorithm) — the key must be bytes; .encode() converts a string.",
+      "hmac.compare_digest() compares signatures in constant time, defeating timing attacks.",
+      "Changing the message by even one character invalidates the signature — that's the whole point.",
+    ],
+  },
+  {
+    id: "cy-05",
+    title: "Cybersecurity: Spotting SQL Injection",
+    track: "cybersecurity",
+    runtime: "python",
+    tier: "pro",
+    order: 5,
+    description: "SQL injection is still one of the most exploited web vulnerabilities. You'll build a defensive scanner that flags input matching classic injection signatures.",
+    explanation:
+      `SQL injection happens when user input is concatenated directly into a query:\n\n  # DANGEROUS — never do this\n  query = "SELECT * FROM users WHERE name='" + user_input + "'"\n\nThe real fix is parameterised queries (placeholders, not string concatenation). But a defence-in-depth strategy also screens input for suspicious patterns.\n\nClassic SQL-injection signatures:\n  ' OR 1=1 --        — always-true clause to bypass auth\n  '; DROP TABLE ...  — chained destructive statement\n  UNION SELECT ...   — pulling data from other tables\n  --                 — SQL line comment to truncate the original query\n\nWe use re.search with (?i) for case-insensitive matching — attackers often randomise casing to evade naive filters.`,
+    examples: [
+      { label: "Always-true clause", code: `import re\nuser_input = "alice' OR 1=1 --"\nprint(bool(re.search(r"(?i)\\bOR\\b\\s+\\d+\\s*=\\s*\\d+", user_input)))\n# True` },
+      { label: "Destructive chain", code: `attack = "robert; DROP TABLE students; --"\nprint(bool(re.search(r"(?i)\\bDROP\\s+TABLE\\b", attack)))\n# True` },
+      { label: "UNION-based extraction", code: `attack = "1 UNION SELECT password FROM users"\nprint(bool(re.search(r"(?i)\\bUNION\\b.*\\bSELECT\\b", attack)))\n# True` },
+    ],
+    project: "Mini project: Build is_suspicious(input) that flags four classic injection patterns. Run it against four inputs (1 safe, 3 attacks).",
+    objective: "Print exactly:\nalice: False\nalice' OR 1=1 --: True\n1 UNION SELECT * FROM users: True\nrobert; DROP TABLE students; --: True",
+    starterCode: `# Cybersecurity: Spotting SQL Injection\nimport re\n\nPATTERNS = [\n    r"(?i)\\bUNION\\b.*\\bSELECT\\b",          # data extraction\n    r"(?i)\\bOR\\b\\s+\\d+\\s*=\\s*\\d+",          # always-true bypass\n    r"(?i)\\bDROP\\s+TABLE\\b",                 # destructive chain\n    r"(?i)';.*--",                            # comment-truncated injection\n]\n\ndef is_suspicious(s):\n    return any(re.search(p, s) for p in PATTERNS)\n\ntests = [\n    "alice",\n    "alice' OR 1=1 --",\n    "1 UNION SELECT * FROM users",\n    "robert; DROP TABLE students; --",\n]\nfor t in tests:\n    print(f"{t}: {is_suspicious(t)}")\n`,
+    expectedOutput: "alice: False\nalice' OR 1=1 --: True\n1 UNION SELECT * FROM users: True\nrobert; DROP TABLE students; --: True",
+    hints: [
+      "(?i) at the start of a pattern makes the whole match case-insensitive.",
+      "\\b is a word boundary — it stops 'DROPLET' from matching the DROP rule.",
+      "Pattern scanners are a complement to parameterised queries, not a replacement — always use placeholders.",
+    ],
+  },
 ];
 
 export function getLessonById(id: string): Lesson | undefined {
@@ -1324,4 +1735,16 @@ export function getPythonLessons(): Lesson[] {
 
 export function getSQLLessons(): Lesson[] {
   return lessons.filter((l) => l.track === "sql");
+}
+
+export function getDataAnalystLessons(): Lesson[] {
+  return lessons.filter((l) => l.track === "data-analyst");
+}
+
+export function getMLLessons(): Lesson[] {
+  return lessons.filter((l) => l.track === "ai-ml");
+}
+
+export function getCybersecurityLessons(): Lesson[] {
+  return lessons.filter((l) => l.track === "cybersecurity");
 }

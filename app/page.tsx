@@ -84,20 +84,54 @@ export default function LandingPage() {
       </section>
 
       {/* Tracks */}
-      <section className="max-w-4xl mx-auto px-6 py-8 pb-24">
-        <h2 className="text-3xl font-bold text-center mb-10">Two Tracks to Choose From</h2>
-        <div className="grid md:grid-cols-2 gap-6">
+      <section className="max-w-6xl mx-auto px-6 py-8 pb-24">
+        <h2 className="text-3xl font-bold text-center mb-3">Six Tracks to Choose From</h2>
+        <p className="text-center text-blue-100/70 mb-10">Start with the basics or jump straight into a career path.</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-yellow-500/10 border border-yellow-400/30 rounded-2xl p-6">
             <div className="text-4xl mb-3">🟡</div>
             <h3 className="font-bold text-xl mb-1">JavaScript</h3>
             <p className="text-blue-100/70 text-sm mb-4">The language of the web. Start free, go pro for advanced topics.</p>
-            <div className="text-xs text-yellow-300">5 free lessons + 7 pro lessons</div>
+            <div className="text-xs text-yellow-300">Free + Pro lessons</div>
           </div>
-          <div className="bg-blue-500/10 border border-blue-400/30 rounded-2xl p-6">
+          <div className="bg-emerald-500/10 border border-emerald-400/30 rounded-2xl p-6">
             <div className="text-4xl mb-3">🐍</div>
             <h3 className="font-bold text-xl mb-1">Python</h3>
-            <p className="text-blue-100/70 text-sm mb-4">Clean, readable, powerful. Perfect for data, scripts, and more.</p>
-            <div className="text-xs text-blue-300">5 pro lessons — Pro plan required</div>
+            <p className="text-blue-100/70 text-sm mb-4">Clean, readable, powerful. Perfect for scripts, automation, and AI.</p>
+            <div className="text-xs text-emerald-300">Pro plan required</div>
+          </div>
+          <div className="bg-cyan-500/10 border border-cyan-400/30 rounded-2xl p-6">
+            <div className="text-4xl mb-3">🗄️</div>
+            <h3 className="font-bold text-xl mb-1">SQL</h3>
+            <p className="text-blue-100/70 text-sm mb-4">Query real databases. From SELECT basics to window functions and CTEs.</p>
+            <div className="text-xs text-cyan-300">Pro plan required</div>
+          </div>
+          <div className="bg-violet-500/10 border border-violet-400/30 rounded-2xl p-6 relative overflow-hidden">
+            <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider bg-violet-400/20 text-violet-200 border border-violet-400/30 px-2 py-0.5 rounded-full">
+              New
+            </span>
+            <div className="text-4xl mb-3">📊</div>
+            <h3 className="font-bold text-xl mb-1">Data Analyst</h3>
+            <p className="text-blue-100/70 text-sm mb-4">SQL + Python (pandas) — the analyst's everyday toolkit, project by project.</p>
+            <div className="text-xs text-violet-300">Pro plan required</div>
+          </div>
+          <div className="bg-rose-500/10 border border-rose-400/30 rounded-2xl p-6 relative overflow-hidden">
+            <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider bg-rose-400/20 text-rose-200 border border-rose-400/30 px-2 py-0.5 rounded-full">
+              New
+            </span>
+            <div className="text-4xl mb-3">🤖</div>
+            <h3 className="font-bold text-xl mb-1">AI / ML</h3>
+            <p className="text-blue-100/70 text-sm mb-4">NumPy, linear regression, classification, and clustering with scikit-learn.</p>
+            <div className="text-xs text-rose-300">Pro plan required</div>
+          </div>
+          <div className="bg-red-500/10 border border-red-400/30 rounded-2xl p-6 relative overflow-hidden">
+            <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider bg-red-400/20 text-red-200 border border-red-400/30 px-2 py-0.5 rounded-full">
+              New
+            </span>
+            <div className="text-4xl mb-3">🛡️</div>
+            <h3 className="font-bold text-xl mb-1">Cybersecurity</h3>
+            <p className="text-blue-100/70 text-sm mb-4">Hashing, ciphers, HMAC, password rules, and spotting injection attacks.</p>
+            <div className="text-xs text-red-300">Pro plan required</div>
           </div>
         </div>
       </section>

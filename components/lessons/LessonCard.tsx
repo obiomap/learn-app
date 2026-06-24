@@ -9,9 +9,12 @@ interface LessonCardProps {
 }
 
 const trackAccent: Record<string, string> = {
-  javascript: "border-l-amber-400",
-  python:     "border-l-emerald-400",
-  sql:        "border-l-cyan-400",
+  javascript:     "border-l-amber-400",
+  python:         "border-l-emerald-400",
+  sql:            "border-l-cyan-400",
+  "data-analyst": "border-l-violet-400",
+  "ai-ml":        "border-l-rose-400",
+  cybersecurity:  "border-l-red-500",
 };
 
 export default function LessonCard({ lesson, completed, locked }: LessonCardProps) {

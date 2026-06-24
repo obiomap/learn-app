@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getJSLessons, getPythonLessons, getSQLLessons } from "@/data/lessons";
+import { getJSLessons, getPythonLessons, getSQLLessons, getDataAnalystLessons, getMLLessons, getCybersecurityLessons } from "@/data/lessons";
 import LessonCard from "@/components/lessons/LessonCard";
 import LessonRecommender from "@/components/lessons/LessonRecommender";
 
@@ -17,12 +17,18 @@ export default async function LessonsPage() {
   const jsLessons  = getJSLessons();
   const pyLessons  = getPythonLessons();
   const sqlLessons = getSQLLessons();
+  const daLessons  = getDataAnalystLessons();
+  const mlLessons  = getMLLessons();
+  const cyLessons  = getCybersecurityLessons();
 
   const jsCompleted  = jsLessons.filter((l)  => completedIds.has(l.id)).length;
   const pyCompleted  = pyLessons.filter((l)  => completedIds.has(l.id)).length;
   const sqlCompleted = sqlLessons.filter((l) => completedIds.has(l.id)).length;
-  const totalCompleted = jsCompleted + pyCompleted + sqlCompleted;
-  const totalLessons   = jsLessons.length + pyLessons.length + sqlLessons.length;
+  const daCompleted  = daLessons.filter((l)  => completedIds.has(l.id)).length;
+  const mlCompleted  = mlLessons.filter((l)  => completedIds.has(l.id)).length;
+  const cyCompleted  = cyLessons.filter((l)  => completedIds.has(l.id)).length;
+  const totalCompleted = jsCompleted + pyCompleted + sqlCompleted + daCompleted + mlCompleted + cyCompleted;
+  const totalLessons   = jsLessons.length + pyLessons.length + sqlLessons.length + daLessons.length + mlLessons.length + cyLessons.length;
 
   function ProgressBar({ pct, color }: { pct: number; color: string }) {
     return (
@@ -68,7 +74,7 @@ export default async function LessonsPage() {
         </div>
 
         {/* ── Track stat cards ── */}
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
           {/* JavaScript */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-center gap-3 mb-1">
@@ -118,6 +124,57 @@ export default async function LessonsPage() {
             </p>
             {isPro && <ProgressBar pct={sqlLessons.length > 0 ? Math.round((sqlCompleted / sqlLessons.length) * 100) : 0} color="bg-cyan-400" />}
           </div>
+
+          {/* Data Analyst */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6m0 13l-4-4m4 4l4-4M15 5v13m0-13l-4 4m4-4l4 4" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">Data Analyst</span>
+              {!isPro && <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">Pro</span>}
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mt-2">
+              {isPro ? daCompleted : "–"}<span className="text-gray-400 text-base font-normal">/{daLessons.length}</span>
+            </p>
+            {isPro && <ProgressBar pct={daLessons.length > 0 ? Math.round((daCompleted / daLessons.length) * 100) : 0} color="bg-violet-400" />}
+          </div>
+
+          {/* AI / ML */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">AI / ML</span>
+              {!isPro && <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">Pro</span>}
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mt-2">
+              {isPro ? mlCompleted : "–"}<span className="text-gray-400 text-base font-normal">/{mlLessons.length}</span>
+            </p>
+            {isPro && <ProgressBar pct={mlLessons.length > 0 ? Math.round((mlCompleted / mlLessons.length) * 100) : 0} color="bg-rose-400" />}
+          </div>
+
+          {/* Cybersecurity */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">Cybersecurity</span>
+              {!isPro && <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">Pro</span>}
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mt-2">
+              {isPro ? cyCompleted : "–"}<span className="text-gray-400 text-base font-normal">/{cyLessons.length}</span>
+            </p>
+            {isPro && <ProgressBar pct={cyLessons.length > 0 ? Math.round((cyCompleted / cyLessons.length) * 100) : 0} color="bg-red-500" />}
+          </div>
         </div>
 
         {/* ── JavaScript track ── */}
@@ -163,7 +220,7 @@ export default async function LessonsPage() {
         </section>
 
         {/* ── SQL track ── */}
-        <section className="pb-10">
+        <section className="mb-10">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-1 h-6 rounded-full bg-cyan-400 shrink-0" />
             <h2 className="font-bold text-gray-900">SQL</h2>
@@ -173,6 +230,75 @@ export default async function LessonsPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {sqlLessons.map((lesson) => (
+              <LessonCard
+                key={lesson.id}
+                lesson={lesson}
+                completed={completedIds.has(lesson.id)}
+                locked={!isPro}
+              />
+            ))}
+          </div>
+          {!isPro && <UpgradeBanner />}
+        </section>
+
+        {/* ── Data Analyst track ── */}
+        <section className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-1 h-6 rounded-full bg-violet-400 shrink-0" />
+            <h2 className="font-bold text-gray-900">Data Analyst</h2>
+            <span className="text-xs text-gray-400">
+              {isPro ? `${daCompleted} of ${daLessons.length} completed` : "Pro plan required"}
+            </span>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">SQL + Python (pandas) — the analyst's everyday toolkit, project by project.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {daLessons.map((lesson) => (
+              <LessonCard
+                key={lesson.id}
+                lesson={lesson}
+                completed={completedIds.has(lesson.id)}
+                locked={!isPro}
+              />
+            ))}
+          </div>
+          {!isPro && <UpgradeBanner />}
+        </section>
+
+        {/* ── AI / ML track ── */}
+        <section className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-1 h-6 rounded-full bg-rose-400 shrink-0" />
+            <h2 className="font-bold text-gray-900">AI / ML</h2>
+            <span className="text-xs text-gray-400">
+              {isPro ? `${mlCompleted} of ${mlLessons.length} completed` : "Pro plan required"}
+            </span>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">NumPy, linear regression, classification, and clustering with scikit-learn.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {mlLessons.map((lesson) => (
+              <LessonCard
+                key={lesson.id}
+                lesson={lesson}
+                completed={completedIds.has(lesson.id)}
+                locked={!isPro}
+              />
+            ))}
+          </div>
+          {!isPro && <UpgradeBanner />}
+        </section>
+
+        {/* ── Cybersecurity track ── */}
+        <section className="pb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-1 h-6 rounded-full bg-red-500 shrink-0" />
+            <h2 className="font-bold text-gray-900">Cybersecurity</h2>
+            <span className="text-xs text-gray-400">
+              {isPro ? `${cyCompleted} of ${cyLessons.length} completed` : "Pro plan required"}
+            </span>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">Hashing, ciphers, password policies, HMAC, and recognising injection attacks — defensive fundamentals.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {cyLessons.map((lesson) => (
               <LessonCard
                 key={lesson.id}
                 lesson={lesson}
